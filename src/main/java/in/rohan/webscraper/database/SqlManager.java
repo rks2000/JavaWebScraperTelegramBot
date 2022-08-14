@@ -12,7 +12,9 @@ public class SqlManager {
         } catch (Exception ignored) {
             // table probably does not exist
         }
-        Sqlite.onUpdate("CREATE TABLE IF NOT EXISTS posts(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title VARCHAR, url VARCHAR, content VARCHAR)");
+        Sqlite.onUpdate("CREATE TABLE IF NOT EXISTS posts(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "title VARCHAR, url VARCHAR, content VARCHAR, is_sent BOOLEAN, " +
+                "UNIQUE(title, url))");      ///// using UNIQUE to ignore repeated values
         System.out.println("New Table posts Created!");
     }
 
@@ -21,9 +23,9 @@ public class SqlManager {
         System.out.println("posts Table Deleted!");
     }
 
-    public static void getValues() {
+    public static void getValuesFromDatabase() {
 
-        ResultSet resultSet = Sqlite.onQuery("SELECT * FROM posts");
+        ResultSet resultSet = Sqlite.onQuery("SELECT * FROM posts WHERE is_sent = 'false'");
 
         try {
             while (resultSet.next()) {
@@ -38,17 +40,20 @@ public class SqlManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        String updateIsSentQuery = "UPDATE posts SET is_sent = true";
+        Sqlite.onUpdate(updateIsSentQuery);
     }
 
-    public static void setValues(String title, String url, String content) {
+    public static void setPostValuesInDatabase(String title, String url, String content, boolean is_sent) {
 
-        Sqlite.onUpdate("INSERT INTO posts(title, url, content) VALUES('" +
+        Sqlite.onUpdate("INSERT OR IGNORE INTO posts(title, url, content, is_sent) VALUES('" +
                 title +"', '" +
                 url +"', '" +
-                content + "')");
+                content + "', '" +
+                is_sent + "')");  /// Ignores if values are not unique
     }
 
-    public static void deleteOldValues() {
+    public static void deleteOldValuesFromDatabase() {
         Sqlite.onUpdate("DELETE FROM posts WHERE id IN (SELECT id FROM posts ORDER BY id ASC LIMIT " +
                 OLDEST_VALUE +")");
     }

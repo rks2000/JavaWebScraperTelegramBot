@@ -97,7 +97,7 @@ public class Controller {
                     String title = post.getTitle();
                     String url = post.getUrl();
                     String content = post.getContent();
-                    SqlManager.setValues(title, url, content);
+                    SqlManager.setPostValuesInDatabase(title, url, content, false);
                 }
                 hashSetOfPosts.clear();
                 System.out.println("Hash Set Cleaning performed on: " + new Date());
@@ -108,7 +108,7 @@ public class Controller {
         TimerTask databaseCleanerTask = new TimerTask() {
             public void run() {
                 System.out.println("Cleaning performed on: " + new Date());
-                SqlManager.deleteOldValues();
+                SqlManager.deleteOldValuesFromDatabase();
             }
         };
 
