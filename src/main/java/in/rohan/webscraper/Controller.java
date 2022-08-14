@@ -11,15 +11,12 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import java.util.*;
 
 public class Controller {
-    private static Set<Post> hashSetOfPosts = new HashSet<>();
-    private static Boolean isSent = false;
-    static final long DATABASE_ADD_PERIOD = 10000L; //7200 * 1000L; // 2 hours
 
-    // after this many millisecond the program will check for new internships
-    static final Long SCRAPE_PERIOD = 5000L; //600 * 1000L; // 10 minutes
+    // after this much time the program will check for new postings
+    static final Long SCRAPE_PERIOD = 60000L; // 1 min
 
-    // after this many ms the program will check trigger a query that will reduce the number of rows in posts table.
-    static final Long CLEAN_PERIOD = 10800 * 1000L; // 3 hours
+    // after this much time the program will reduce the number of rows in posts table.
+    static final Long CLEAN_PERIOD = 21600 * 1000L; // 6 hours
 
 
     public static void main(String[] args) {
@@ -50,51 +47,20 @@ public class Controller {
         TimerTask scraperTask = new TimerTask() {
             @Override
             public void run() {
-
                 System.out.println("\n-------------------------\n\nScraping Performed on: " + new Date());
 
-                Post posts = JsoupScraper.scrape();
-                System.out.println("\n" + posts);
-
-
-                if (hashSetOfPosts.isEmpty()) {  ///
-                    System.out.println("\nHash Set is Empty ");
-                    System.out.println("\nHash Set contains post = " + hashSetOfPosts.contains(posts));
-                    bot.sendToUser(posts.toMessageString());
-                    System.out.println("\npost sent to user");
-                } else {
-                    for (Post post : hashSetOfPosts) {
-                        boolean postExists = hashSetOfPosts.contains(post);
-                        System.out.println("\nHash Set contains post = " + postExists);
-                        if (!postExists) {
-                            bot.sendToUser(post.toMessageString());
-                            System.out.println("\npost sent to user");
-                        } else {
-                            System.out.println("\nPost not sent to user. Post already exists in hashset.");
-                        }
-                    }
+                ArrayList<Post> posts = JsoupScraper.scrape();
+                for (Post post: posts) {
+                    SqlManager.setPostValuesInDatabase(post.getTitle(), post.getUrl(), post.getContent(), false);
                 }
 
-                hashSetOfPosts.add(posts);
-                System.out.println("\nposts added in Hash Set");
-                System.out.println("\nSize of Hash Set = " + hashSetOfPosts.size());
-            }
-        };
+                posts = SqlManager.getValuesFromDatabase();
 
-        TimerTask databaseAddTask = new TimerTask() {
-            public void run() {
-                System.out.println("Database Add Task performed on: " + new Date());
-                for (Post post: hashSetOfPosts) {
-                    String title = post.getTitle();
-                    String url = post.getUrl();
-                    String content = post.getContent();
-                    SqlManager.setPostValuesInDatabase(title, url, content, false);
+                for (Post post: posts) {
+                    bot.sendToUser(post.toMessageString());
                 }
-                hashSetOfPosts.clear();
-                System.out.println("Hash Set Cleaning performed on: " + new Date());
             }
         };
-
 
         TimerTask databaseCleanerTask = new TimerTask() {
             public void run() {
@@ -104,7 +70,6 @@ public class Controller {
         };
 
         timer.scheduleAtFixedRate(scraperTask, 0, SCRAPE_PERIOD);
-        timer.scheduleAtFixedRate(databaseAddTask, DATABASE_ADD_PERIOD, DATABASE_ADD_PERIOD);
         timer.scheduleAtFixedRate(databaseCleanerTask, CLEAN_PERIOD, CLEAN_PERIOD);
     }
 }
