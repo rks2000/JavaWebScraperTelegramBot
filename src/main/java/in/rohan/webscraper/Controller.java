@@ -78,15 +78,6 @@ public class Controller {
                 hashSetOfPosts.add(posts);
                 System.out.println("\nposts added in Hash Set");
                 System.out.println("\nSize of Hash Set = " + hashSetOfPosts.size());
-
-//                DatabaseManager.addPosts(posts);
-
-//                posts = DatabaseManager.getNewPosts();
-
-//                for (Post post : posts) {
-////                    System.out.println(post);
-//                    bot.sendToAllUsers(post.toMessageString());
-//                }
             }
         };
 
