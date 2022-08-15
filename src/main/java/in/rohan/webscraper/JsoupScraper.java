@@ -15,18 +15,48 @@ public class JsoupScraper {
         String url = "https://freshershunt.in/";
         Document document = request(url);
 
-        Element body = document.select("div.inside-article").first();
-        String postTitle = body.select("h2.entry-title").text();
-        String outerLink = body.select("h2.entry-title a").attr("href");
+        // Below code is null pointer exception safe
+
+        Element body = null;
+        if (document != null) {
+            body = document.select("div.inside-article").first();
+        } else {
+            System.out.println("\ndocument element is null !!");
+        }
+        String postTitle = null;
+        if (body != null) {
+            postTitle = body.select("h2.entry-title").text();
+        } else {
+            System.out.println("\nbody element is null !!");
+        }
+        String outerLink = null;
+        if (body != null) {
+            outerLink = body.select("h2.entry-title a").attr("href");
+        } else {
+            System.out.println("\nbody element is null !!");
+        }
 
         Document innerDocument = request(outerLink);
-        Elements innerBody = innerDocument.select("div.entry-content");
-        Elements applyLink = innerBody.select("p").select(":contains(Apply):contains(Click here)");
-        for (Element link : applyLink.select("a[href]")) {
-            String postLink = link.attr("href");
-            String postText = link.text();
-//            System.out.println(postTitle + "\n" + postLink + "\n" + postText + "\n---------------\n\n");
-            result.add(new Post(postTitle, postLink, postText));
+        Elements innerBody = null;
+        if (innerDocument != null) {
+            innerBody = innerDocument.select("div.entry-content");
+        } else {
+            System.out.println("\ninnerDocument is null !!");
+        }
+        Elements applyLink = null;
+        if (innerBody != null) {
+            applyLink = innerBody.select("p").select(":contains(Apply):contains(Click here)");
+        } else {
+            System.out.println("\ninnerBody is null !!");
+        }
+        if (applyLink != null) {
+            for (Element link : applyLink.select("a[href]")) {
+                String postLink = link.attr("href");
+                String postText = link.text();
+                result.add(new Post(postTitle, postLink, postText));
+            }
+        } else {
+            System.out.println("\napplyLink is null !!");
         }
         return result;
     }
@@ -42,6 +72,7 @@ public class JsoupScraper {
             return null;
         } catch (IOException e) {
             e.printStackTrace();
+            System.out.println("\nNot able to Connect to the site !!");
             return null;
         }
     }

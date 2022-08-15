@@ -10,7 +10,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class TelegramNotificationBot extends TelegramLongPollingBot {
 
-    String chatID = ConfigManager.getKeys("CHAT_ID");
+    String chatID = ConfigManager.getKeys("CHAT_ID");  // bot send updates to this id
+    String ownerChatId = ConfigManager.getKeys("OWNER_CHAT_ID"); // to restrict access to other users
 
 
     @Override
@@ -26,17 +27,26 @@ public class TelegramNotificationBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
 
-        // Check if the update has a message and message has text
-        if(update.hasMessage() && update.getMessage().hasText()) {
+        // Check if the update has a message & message has text, and It comes from the Owner
+        // and restricts access to unauthorized users
+        if(update.hasMessage() && update.getMessage().hasText()
+                && update.getMessage().getChatId().toString().equals(ownerChatId)) {
 
             String userMessage = update.getMessage().getText();
             User user = update.getMessage().getFrom();
 
-            String reply = "_";
+            String reply = "Please select Commands!";
 
             if (userMessage.equals("/start")) {
-                reply = "Welcome, " + user.getFirstName();
+                reply = "Welcome, " + user.getFirstName() + "\n" +
+                    "Now I will Start Sending Notification to the Channel.";
 
+                Controller.configureRepeatableTasks(Controller.telegramNotificationBot);
+
+            } else if (userMessage.equals("/restart")) {
+                reply = "Restarting the Bot now...";
+
+                Controller.main(null);
             }
 
             SendMessage message = new SendMessage();
@@ -45,6 +55,17 @@ public class TelegramNotificationBot extends TelegramLongPollingBot {
 
             try {
                 execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // Sends warning message to unauthorized users
+            SendMessage unauthorizedMessage = new SendMessage();
+            unauthorizedMessage.setChatId(update.getMessage().getFrom().getId());
+            unauthorizedMessage.setText("WARNING: Unauthorized access denied for " + update.getMessage().getFrom().getFirstName());
+
+            try {
+                execute(unauthorizedMessage);
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }

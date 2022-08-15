@@ -18,6 +18,8 @@ public class Controller {
     // after this much time the program will reduce the number of rows in posts table.
     static final Long CLEAN_PERIOD = 21600 * 1000L; // 6 hours
 
+    static TelegramNotificationBot telegramNotificationBot;
+
 
     public static void main(String[] args) {
 
@@ -25,8 +27,8 @@ public class Controller {
         Sqlite.setConnection();
         SqlManager.createTable();
 
-        TelegramNotificationBot telegramNotificationBot = new TelegramNotificationBot();
-        System.out.println(ConfigManager.getKeys("BOT_NAME") + " is Starting...");
+        telegramNotificationBot = new TelegramNotificationBot();
+        System.out.println(ConfigManager.getKeys("BOT_NAME") + " is Instantiated...");
 
         try {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
@@ -35,14 +37,13 @@ public class Controller {
         }catch (TelegramApiException e) {
             e.printStackTrace();
         }
-        configureRepeatableTasks(telegramNotificationBot);
     }
 
     /**
      * Configures tasks that are executed periodically.
      * @param bot the bot for which the tasks should be configured
      */
-    private static void configureRepeatableTasks(TelegramNotificationBot bot) {
+    protected static void configureRepeatableTasks(TelegramNotificationBot bot) {
         Timer timer = new Timer("Timer");
         TimerTask scraperTask = new TimerTask() {
             @Override
