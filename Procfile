@@ -1,1 +1,1 @@
-worker: cd D:\RohanTelegramBot && java -jar JavaWebScraper.jar
+worker: cd target && java -jar JavaWebScraper.jar
