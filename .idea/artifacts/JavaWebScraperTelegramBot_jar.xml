@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" build-on-make="true" name="JavaWebScraperTelegramBot:jar">
-    <output-path>$PROJECT_DIR$/../../Rohan Telegram Bot</output-path>
+    <output-path>$PROJECT_DIR$/../../RohanTelegramBot</output-path>
     <root id="archive" name="JavaWebScraper.jar">
       <element id="directory" name="META-INF">
         <element id="file-copy" path="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" />
